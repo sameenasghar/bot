@@ -2,11 +2,14 @@
 const express = require ('express');
 var mysql = require("mysql");
 const bodyParser = require ('body-parser');
+var AssistantV1 = require('watson-developer-cloud/assistant/v1');
 
 // to note down the current timestamp
 var moment = require('moment');
 moment().format();
 
+// an array that stores the context variables along with the phone number they are attached to 
+var contexts = [];
 
 //creating a new express app
 const app = express();
@@ -55,6 +58,7 @@ app.get('/', (req, res) => {
 //the incoming message is split up here into different parts to identify
 //who the message was from, what number was it sent to (which is our twilio number)
 //and the message body
+//this endpoint will be contacted by Twilio whenever the user sends a message to the twilio number
 app.post('/inbound', (req, res) => {
   //user phone number
   let from = req.body.From;
@@ -67,8 +71,85 @@ app.post('/inbound', (req, res) => {
 
 
 
-  console.log(body);
-  console.log("message from" + from);
+  //console.log(body);
+  //console.log("message from" + from);
+
+//entering context logic
+// firstly the app assumes the context is null
+// next, the app checks whether a phone number has contacted us before and has a context variable in context []
+// if it has contacted us before, the app will set the context variable to context[] array
+// if it doesn't exist, context will remain null and will not be sent to IBM Watson
+
+var context = null;
+var index = 0;
+var contextIndex = 0;
+contexts.forEach(function(value) {
+  console.log(value.from);
+  if (value.from == from) {
+    context = value.context;
+    contextIndex = index;
+  }
+  index = index + 1;
+});
+
+console.log('Recieved message from ' + from + ' saying \'' + body  + '\'');
+
+//initialising a new watson assistant variable
+//using Watson Assistant credentials to establish a connection 
+
+var assistant = new AssistantV1({
+  username: 'bff905e5-1724-42df-b6ee-e342459fc3a0',
+  password: 'h5aCPLsAdIAL',
+  url: 'https://gateway.watsonplatform.net/assistant/api/',
+  version: '2018-07-10'
+});
+
+//printing out the context
+console.log(JSON.stringify(context));
+
+//printing out the number of context variables 
+console.log(contexts.length);
+
+
+assistant.message({
+  input: { text: body },
+  workspace_id: 'b1fcf319-8095-4cf5-83f0-f7c79cfd87d2',
+  context: context
+ }, function(err, response) {
+     if (err) {
+       console.error(err);
+     } else {
+       console.log(response.output.text[0]);
+       if (context == null) {
+         contexts.push({'from': from, 'context': response.context});
+       } else {
+         contexts[contextIndex].context = response.context;
+       }
+
+       /*var intent = response.intents[0].intent;
+       console.log(intent);
+       if (intent == "bye") {
+         //contexts.splice(contexts.indexOf({'from': from, 'context': response.context}),1);
+         contexts.splice(contextIndex,1);
+         // Call REST API here (order pizza, etc.)
+       }*/
+
+  
+
+       client.messages.create({
+         from: to,
+         to: from,
+         body: response.output.text[0]
+       }, function(err, message) {
+         if(err) {
+           console.error(err.message);
+         }
+       });
+     }
+});
+
+
+/*
 
 //add code to check if the number who texted us has texted before or not
 var sql3 = "SELECT dateOfInteraction, time, dataToOpenEHR FROM userInfo where phoneNumber = " + mysql.escape(from);
@@ -99,6 +180,7 @@ else {
 
 });
 
+*/
 //can make two querries to present the result properly!!!!
 
 //creating a timestamp to store the date and time of the user's interaction
