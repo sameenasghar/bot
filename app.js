@@ -18,8 +18,8 @@ const app = express();
 //obtained Twilio credentials from the dashboard
 //client variable can now be used to make message requests
 const twilio = require ('twilio');
-const accountSid = 'ACf3e190410067a45bd2bd40bd0f597299';
-const authToken = '2a2ffddf2b9584f6acb1fcb45fba1198';
+const accountSid = 'ACf30c4c4fbacbdab2de1b19acc646197b';
+const authToken = 'b63666d8b4927e23888b82d2ce31a3b0';
 const client = new twilio(accountSid, authToken);
 
 //setting up the Node.js body parsing middleware
