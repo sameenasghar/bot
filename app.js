@@ -18,8 +18,8 @@ const app = express();
 //obtained Twilio credentials from the dashboard
 //client variable can now be used to make message requests
 const twilio = require ('twilio');
-const accountSid = 'ACf30c4c4fbacbdab2de1b19acc646197b';
-const authToken = 'b63666d8b4927e23888b82d2ce31a3b0';
+const accountSid = 'AC171008a12142e7169477df114a18ca87';
+const authToken = '4d7bbeeb7db733a131e269812b85f89f';
 const client = new twilio(accountSid, authToken);
 
 //setting up the Node.js body parsing middleware
@@ -53,6 +53,31 @@ app.get('/', (req, res) => {
   res.end();
 })
 
+//initialising individual gad7 question scores which will be pushed to openEHR and will be used to calculate the test score
+var gad1_score = 0;
+var gad2_score = 0;
+var gad3_score = 0;
+var gad4_score = 0;
+var gad5_score = 0;
+var gad6_score = 0;
+var gad7_score = 0;
+
+//initialising total gad7 score
+var gadTotal_score = 0;
+
+//initialising PHQ9 indiviual question scores
+var phq9_q1_score = 0;
+var phq9_q2_score = 0;
+var phq9_q3_score = 0;
+var phq9_q4_score = 0;
+var phq9_q5_score = 0;
+var phq9_q6_score = 0;
+var phq9_q7_score = 0;
+var phq9_q8_score = 0;
+var phq9_q9_score = 0;
+
+//initialising total PHQ9 score
+var phq9_total_score = 0;
 
 // setting up end point for POST request
 //the incoming message is split up here into different parts to identify
@@ -126,6 +151,88 @@ assistant.message({
          contexts[contextIndex].context = response.context;
        }
 
+       
+       //storing the dialog node number in a variable
+       // this is done to check whether we have reached the end of the GAD7 questionnaire
+       //here the score can be calulated by using the context variables stored 
+       var dialog_node = response.output.nodes_visited[0];
+       console.log("dialog node is" + dialog_node);
+       if (dialog_node === "node_21_1534912241144") {
+         console.log('AT FINAL GAD7 NODE - ABOUT TO PROCESS SCORE');
+         gad1_score = calculateScore(response.context.gad_1_entity);
+         gad2_score = calculateScore(response.context.gad_2_entity);
+         gad3_score = calculateScore(response.context.gad_3_entity);
+         gad4_score = calculateScore(response.context.gad_4_entity);
+         gad5_score = calculateScore(response.context.gad_5_entity);
+         gad6_score = calculateScore(response.context.gad_6_entity);
+         gad7_score = calculateScore(response.context.gad_7_entity);
+         gadTotal_score = (gad1_score + gad2_score + gad3_score + gad4_score + gad5_score + gad6_score+ gad7_score);
+         
+         console.log('gad7 question 1 individual score is: ' + gad1_score );
+         console.log('gad7 question 2 individual score is: ' + gad2_score );
+         console.log('gad7 question 3 individual score is: ' + gad3_score );
+         console.log('gad7 question 4 individual score is: ' + gad4_score );
+         console.log('gad7 question 5 individual score is: ' + gad5_score );
+         console.log('gad7 question 6 individual score is: ' + gad6_score );
+         console.log('gad7 question 7 individual score is: ' + gad7_score );
+         console.log('gad7 total score is: ' + gadTotal_score);
+
+         //sending total score back to the user 
+         client.messages.create({
+          from: to,
+          to: from,
+          body: `Your GAD7 total score is  ${JSON.stringify(gadTotal_score)}`
+        }, function(err, message) {
+          if(err) {
+            console.error(err.message);
+          }
+        });
+
+         //console.log('gq_1 is!!!!!!!!' + response.context.gq_1);
+
+         //contexts.splice(contextIndex,1);
+       } //checking if the user is at the last node of the PHQ9 dialogue
+       else if (dialog_node === "node_8_1534908120509"){
+
+        
+
+        console.log('AT FINAL PHQ9 NODE - ABOUT TO PROCESS SCORE');
+        phq9_q1_score = calculateScore(response.context.phq_1_entity);
+        phq9_q2_score = calculateScore(response.context.phq_2_entity);
+        phq9_q3_score = calculateScore(response.context.phq_3_entity);
+        phq9_q4_score = calculateScore(response.context.phq_4_entity);
+        phq9_q5_score = calculateScore(response.context.phq_5_entity);
+        phq9_q6_score = calculateScore(response.context.phq_6_entity);
+        phq9_q7_score = calculateScore(response.context.phq_7_entity);
+        phq9_q8_score = calculateScore(response.context.phq_8_entity);
+        phq9_q9_score = calculateScore(response.context.phq_9_entity);
+        phq9_total_score = (phq9_q1_score + phq9_q2_score + phq9_q3_score + phq9_q4_score + phq9_q5_score + phq9_q6_score + phq9_q7_score + phq9_q8_score + phq9_q9_score);
+         
+         console.log('phq9 question 1 individual score is: ' + phq9_q1_score );
+         console.log('phq9 question 2 individual score is: ' + phq9_q2_score);
+         console.log('phq9 question 3 individual score is: ' + phq9_q3_score );
+         console.log('phq9 question 4 individual score is: ' + phq9_q4_score );
+         console.log('phq9 question 5 individual score is: ' + phq9_q5_score );
+         console.log('phq9 question 6 individual score is: ' + phq9_q6_score );
+         console.log('phq9 question 7 individual score is: ' + phq9_q7_score );
+         console.log('phq9 question 8 individual score is: ' + phq9_q8_score );
+         console.log('phq9 question 9 individual score is: ' + phq9_q9_score );
+         console.log('phq9 total score is: ' + phq9_total_score);
+
+         //sending total score back to the user 
+         client.messages.create({
+          from: to,
+          to: from,
+          body: `Your PHQ9 total score is  ${JSON.stringify(phq9_total_score)}`
+        }, function(err, message) {
+          if(err) {
+            console.error(err.message);
+          }
+        });
+
+
+       }
+
        /*var intent = response.intents[0].intent;
        console.log(intent);
        if (intent == "bye") {
@@ -134,7 +241,7 @@ assistant.message({
          // Call REST API here (order pizza, etc.)
        }*/
 
-  
+ 
 
        client.messages.create({
          from: to,
@@ -214,3 +321,30 @@ console.log(mysqlTime);
 app.listen(3000, () => {
   console.log('server connected');
 })
+
+
+// this function associate the entities indentified in the gad7/phq9 questionnaire answers to a particular score
+function calculateScore(entity){
+	// each entity identifies corresponds to a particular score
+  // 'not at all' corresponds to a score of 0
+  //'several days corresponds to a score of 1
+  //'more than half the days' corresponds to a score of 2
+  // 'nearly every day' corresponds to a score of 3
+    var score = 0;
+	switch(entity){
+		case 'not at all':
+			return 0;
+			break;
+		case 'several days':
+			return 1;
+			break;
+		case 'more than half the days':
+			return 2;
+			break;
+		case 'nearly every day':
+			return 3;
+			break;
+		default:
+			return 20;
+	}
+}
