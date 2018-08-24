@@ -18,8 +18,8 @@ const app = express();
 //obtained Twilio credentials from the dashboard
 //client variable can now be used to make message requests
 const twilio = require ('twilio');
-const accountSid = 'AC171008a12142e7169477df114a18ca87';
-const authToken = '4d7bbeeb7db733a131e269812b85f89f';
+const accountSid = 'ACe77f85b8f179cf98bd64a470014f4dda';
+const authToken = '08510bcb1e578bab8a355ac77971f13a';
 const client = new twilio(accountSid, authToken);
 
 //setting up the Node.js body parsing middleware
@@ -78,6 +78,14 @@ var phq9_q9_score = 0;
 
 //initialising total PHQ9 score
 var phq9_total_score = 0;
+
+//storing the date of interaction
+var mysqlDate = moment().format('YYYY-MM-DD');
+console.log(mysqlDate);
+
+//storing the time of interaction
+var mysqlTime = moment().format('h:mm:ss');
+console.log(mysqlTime);
 
 // setting up end point for POST request
 //the incoming message is split up here into different parts to identify
@@ -157,7 +165,10 @@ assistant.message({
        //here the score can be calulated by using the context variables stored 
        var dialog_node = response.output.nodes_visited[0];
        console.log("dialog node is" + dialog_node);
-       if (dialog_node === "node_21_1534912241144") {
+       //node for when GAD ends is node_21_1534912241144
+       //if (dialog_node === "node_21_1534912241144") {
+         //node for when bot asks user about openEHR after GAD7 questionnaire is: node_1_1535060425375
+        if (dialog_node === "node_1_1535060425375") {  
          console.log('AT FINAL GAD7 NODE - ABOUT TO PROCESS SCORE');
          gad1_score = calculateScore(response.context.gad_1_entity);
          gad2_score = calculateScore(response.context.gad_2_entity);
@@ -188,12 +199,41 @@ assistant.message({
           }
         });
 
+        console.log('checking if this will even work:  ' + response.context.data_to_openEHR);
+        var dataToOpenEHR = response.context.data_to_openEHR; 
+
+      /*var sql2 = "INSERT INTO userInfo (phoneNumber, dateOfInteraction, dataToOpenEHR, time) VALUES ('" + from + "', '"+mysqlDate+"',  '"+dataToOpenEHR+"','"+mysqlTime+"' )";
+      connection.query(sql2, function(err, result){
+        if(err) throw err;
+        console.log("TIMESTAMP OF USER INTERACTION WITH BOT INSERTED INTO THE DATABASE");
+      });*/
+
+
+      //sending user interaction data to our database
+      //the only data being sent to the database in the user phone number, the date and time of interaction, and whether the user decided to push data to openEHR
+      sendInteractionTimestampToDB(from, mysqlDate, dataToOpenEHR, mysqlTime);
+
+      //finally, sending user information about the past interactions with the bot
+      fetchPastUserInteractionInfo (from, to);
+
+         //checking if the user has agreed to send data to openEHR or not
+         if (dataToOpenEHR == "yes"){
+  
+           console.log('user has agreed to send data to openEHR');
+           console.log ('printing var dataToOpenEHR: ' + dataToOpenEHR);
+           //ADD OPEN EHR STUFF HERE
+         }
+
+         // SQL code to add user interaction timestamp to our database 
+
+         
          //console.log('gq_1 is!!!!!!!!' + response.context.gq_1);
 
          //contexts.splice(contextIndex,1);
        } //checking if the user is at the last node of the PHQ9 dialogue
-       else if (dialog_node === "node_8_1534908120509"){
-
+       //else if (dialog_node === "node_8_1534908120509"){
+      //dialog node for when the user has been asked about sending data to openEHR after going through the PHQ9 questionnaire
+        else if (dialog_node === "node_1_1535072171900"){
         
 
         console.log('AT FINAL PHQ9 NODE - ABOUT TO PROCESS SCORE');
@@ -230,6 +270,30 @@ assistant.message({
           }
         });
 
+        console.log('checking if this will even work PLS WORK OR ELSE I AM DONE WITH U FFS' + response.context.data_to_openEHR);
+        var dataToOpenEHR = response.context.data_to_openEHR; 
+        
+        //adding user timestamp to database after PHQ9 score has been generated
+        /*var sql2 = "INSERT INTO userInfo (phoneNumber, dateOfInteraction, dataToOpenEHR, time) VALUES ('" + from + "', '"+mysqlDate+"',  '"+dataToOpenEHR+"','"+mysqlTime+"' )";
+      connection.query(sql2, function(err, result){
+        if(err) throw err;
+        console.log("TIMESTAMP OF USER INTERACTION WITH BOT INSERTED INTO THE DATABASE");
+      });*/
+
+      //sending user interaction data to our database
+      //the only data being sent to the database in the user phone number, the date and time of interaction, and whether the user decided to push data to openEHR
+      sendInteractionTimestampToDB(from, mysqlDate, dataToOpenEHR, mysqlTime);
+
+      //finally, sending user information about the past interactions with the bot
+      fetchPastUserInteractionInfo (from, to);
+
+         //checking if the user has agreed to send data to openEHR or not
+         if (response.context.data_to_openEHR == "yes"){
+           var dataToOpenEHR = response.context.data_to_openEHR; 
+           console.log('user has agreed to send data to openEHR');
+           console.log ('printing var dataToOpenEHR' + dataToOpenEHR);
+           //ADD OPENEHR STUFF HERE
+         }
 
        }
 
@@ -238,7 +302,7 @@ assistant.message({
        if (intent == "bye") {
          //contexts.splice(contexts.indexOf({'from': from, 'context': response.context}),1);
          contexts.splice(contextIndex,1);
-         // Call REST API here (order pizza, etc.)
+         // Call REST API here 
        }*/
 
  
@@ -256,62 +320,29 @@ assistant.message({
 });
 
 
-/*
 
-//add code to check if the number who texted us has texted before or not
-var sql3 = "SELECT dateOfInteraction, time, dataToOpenEHR FROM userInfo where phoneNumber = " + mysql.escape(from);
-connection.query(sql3, function(err, result2, fields2){
-  if(err) throw err;
-  //checking if the person has interacted with the database before
-  // if they have, a record of their past interactions is sent to them via text
-  //if they have not, a new conversation is initiated
-  if (result2.length>0){
-  console.log(JSON.stringify(result2));
-  client.messages.create({
-    to:  `${from}`,
-    from: `${to}`,
-    body: `Hi! Welcome back to the Mental Health Chatbot! Your past interactions with the bot are as follows + ${JSON.stringify(result2)}`
-    })
-    .then(message => console.log(message.sid))
-}
-// no record of this number found in the database
-//new conversation is initiated
-else {
-  client.messages.create({
-    to: `${from}`,
-    from:  `${to}`,
-    body: 'Hi! Welcome to the Mental Health Chatbot!'
-  })
-  .then(message => console.log(message.sid))
-}
-
-});
-
-*/
 //can make two querries to present the result properly!!!!
 
 //creating a timestamp to store the date and time of the user's interaction
 //var mysqlTimestamp = moment(Date.now()).format('YYYY-MM-DD HH:mm:ss');
 
 //storing the date of interaction
-var mysqlDate = moment().format('YYYY-MM-DD');
+/*var mysqlDate = moment().format('YYYY-MM-DD');
 console.log(mysqlDate);
 
 //storing the time of interaction
 var mysqlTime = moment().format('h:mm:ss');
-console.log(mysqlTime);
+console.log(mysqlTime);*/
 
-//just adding who texted the twilio number into the db
-      var sql2 = "INSERT INTO userInfo (phoneNumber, dateOfInteraction, dataToOpenEHR, time) VALUES ('" + from + "', '"+mysqlDate+"',  'yes','"+mysqlTime+"' )";
-      connection.query(sql2, function(err, result){
-        if(err) throw err;
-        console.log("second record inserted!");
-      });
+
 
 
   //ending the response
   res.end();
 })
+
+
+
 //setting up the server
 // listening in on port 3000
 // when successfully connnected console log the following
@@ -347,4 +378,58 @@ function calculateScore(entity){
 		default:
 			return 20;
 	}
+}
+
+
+
+//this function can be called after the user has completed the entire dialog flow
+//it can be used to send the data about the user interaction to the SQL database
+//the only data being stored in the database is the user phone number, the date and time of interaction and the user's decision to push data to openEHR or not
+function sendInteractionTimestampToDB(userNumber, date, dataToOpenEHR_decision, timeOfInteraction){
+  var sql3 = "INSERT INTO userInfo (phoneNumber, dateOfInteraction, dataToOpenEHR, time) VALUES ('" + userNumber + "', '"+date+"',  '"+dataToOpenEHR_decision+"','"+timeOfInteraction+"' )";
+      connection.query(sql3, function(err, result){
+        if(err) throw err;
+        console.log("SUCCESS!! DATA PUSHED TO DATABASE USING FUNCTION sendInteractionTimestampToDB ");
+      });
+}
+
+
+
+//this function is created to fetch past user interactions from the database
+//it searches the database using the user's phone number and sends a message to their twilio number to let them know of the past interactions at the end of the chat
+
+function fetchPastUserInteractionInfo (user_phone_number, twilioNumber){
+
+//add code to check if the number who texted us has texted before or not
+var sql4 = "SELECT dateOfInteraction, time, dataToOpenEHR FROM userInfo where phoneNumber = " + mysql.escape(user_phone_number);
+connection.query(sql4, function(err, result2, fields2){
+  if(err) throw err;
+  //checking if the person has interacted with the database before
+  // if they have, a record of their past interactions is sent to them via text
+  //if they have not, a new conversation is initiated
+  if (result2.length>0){
+  console.log(JSON.stringify(result2));
+  client.messages.create({
+    to:  `${user_phone_number}`,
+    from: `${twilioNumber}`,
+    body: `Your past interactions with the bot are as follows + ${JSON.stringify(result2)}`
+    })
+    //.then(message => console.log(message.sid))
+    console.log('function fetchPastUserInteractionInfo has been successful!!');
+}
+// if no record of this number found in the database
+
+else {
+  client.messages.create({
+    to: `${user_phone_number}`,
+    from:  `${twilioNumber}`,
+    body: 'This was your first interaction with the bot'
+  })
+  //.then(message => console.log(message.sid))
+  console.log('function fetchPastUserInteractionInfo has been successful!!');
+}
+
+});
+
+
 }
