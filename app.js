@@ -3,6 +3,8 @@ const express = require ('express');
 var mysql = require("mysql");
 const bodyParser = require ('body-parser');
 var AssistantV1 = require('watson-developer-cloud/assistant/v1');
+var axios = require ('axios');
+var request = require ('request');
 
 // to note down the current timestamp
 var moment = require('moment');
@@ -18,8 +20,8 @@ const app = express();
 //obtained Twilio credentials from the dashboard
 //client variable can now be used to make message requests
 const twilio = require ('twilio');
-const accountSid = 'ACe77f85b8f179cf98bd64a470014f4dda';
-const authToken = '08510bcb1e578bab8a355ac77971f13a';
+const accountSid = 'ACf5a6d7f8dad982458c714674ee457b6d';
+const authToken = '7768acde7fc9ef95ed3fcb4631f9269a';
 const client = new twilio(accountSid, authToken);
 
 //setting up the Node.js body parsing middleware
@@ -222,6 +224,11 @@ assistant.message({
            console.log('user has agreed to send data to openEHR');
            console.log ('printing var dataToOpenEHR: ' + dataToOpenEHR);
            //ADD OPEN EHR STUFF HERE
+           
+           console.log('SENDING DATA TO OPENEHR!!!!!!!!');
+           sendData();
+           console.log('GETTING DATA BACK FROM OPENEHR!!!!!!!!!');
+           getDataFromOpenEHR ();
          }
 
          // SQL code to add user interaction timestamp to our database 
@@ -293,6 +300,11 @@ assistant.message({
            console.log('user has agreed to send data to openEHR');
            console.log ('printing var dataToOpenEHR' + dataToOpenEHR);
            //ADD OPENEHR STUFF HERE
+           console.log('SENDING DATA TO OPENEHR!!!!!!!!');
+           sendData();
+           console.log('GETTING DATA BACK FROM OPENEHR!!!!!!!!!');
+           getDataFromOpenEHR ();
+
          }
 
        }
@@ -430,6 +442,86 @@ else {
 }
 
 });
+
+
+}
+
+function sendData (){
+
+
+var options = { method: 'POST',
+  url: 'https://test.operon.systems/rest/v1/composition',
+  qs: 
+   { ehrId: 'c831fe4d-0ce9-4a63-8bfa-2c51007f97e5',
+     //templateId: 'Mental%20Health%20Triage-v0',
+     templateId: 'Mental Health Triage-v0',
+     committerName: 'Sameen Asghar',
+     format: 'FLAT' },
+  headers: 
+   { //'Postman-Token': 'c64b6cc5-bc13-41cf-886f-1a7b166d2995',
+     'Cache-Control': 'no-cache',
+     'Content-Type': 'application/json',
+     'Ehr-Session-disabled': 'e38eb2c7-85ba-40cd-9a9c-9e4cbca50fb8',
+     Authorization: 'Basic b3Bybl9qYXJyb2Q6WmF5RllDaU82NDQ=' },
+  body: 
+   { 'ctx/language': 'en',
+     'ctx/territory': 'GB',
+     'ctx/composer_name': 'Sameen Asgharrrr',
+     'ctx/time': '2018-05-29T16:18:14.444+02:00',
+     'ctx/id_namespace': 'PARTY_SELF',
+     'ctx/id_scheme': 'PARTY_SELF',
+     'ctx/health_care_facility|name': 'Home',
+     'ctx/health_care_facility|id': '0000',
+     'mental_health_triage/story_history:0/symptom_sign:0/symptom_sign_name': 'Anxiety',
+     'mental_health_triage/story_history:0/symptom_sign:0/description': 'I am been feeling very anxious.',
+     'mental_health_triage/story_history:0/symptom_sign:0/precipitating_factor:0/trigger': 'Air travel',
+     'mental_health_triage/story_history:0/symptom_sign:0/precipitating_factor:0/description': 'Triggered by things at uni',
+     'mental_health_triage/story_history:0/symptom_sign:1/symptom_sign_name': 'Feeling down',
+     'mental_health_triage/story_history:0/symptom_sign:1/description': 'I have been feeling very down and depressed',
+     'mental_health_triage/story_history:0/symptom_sign:1/precipitating_factor:0/trigger': 'Job worries',
+     'mental_health_triage/story_history:0/symptom_sign:1/precipitating_factor:0/description': 'My job is under threat',
+     'mental_health_triage/patient_health_questionnaire-9_phq-9/interest_pleasure|code': 'at0005',
+     'mental_health_triage/patient_health_questionnaire-9_phq-9/feeling_down|code': 'at0007',
+     'mental_health_triage/patient_health_questionnaire-9_phq-9/sleep_issues|code': 'at0008',
+     'mental_health_triage/patient_health_questionnaire-9_phq-9/tired_little_energy|code': 'at0006',
+     'mental_health_triage/patient_health_questionnaire-9_phq-9/appetite|code': 'at0008',
+     'mental_health_triage/patient_health_questionnaire-9_phq-9/feeling_bad_about_yourself|code': 'at0006',
+     'mental_health_triage/patient_health_questionnaire-9_phq-9/trouble_concentrating|code': 'at0008',
+     'mental_health_triage/patient_health_questionnaire-9_phq-9/slowness_fidgety|code': 'at0008',
+     'mental_health_triage/patient_health_questionnaire-9_phq-9/death_self-harm|code': 'at0008',
+     'mental_health_triage/patient_health_questionnaire-9_phq-9/phq-9_score': 19 },
+  json: true };
+
+request(options, function (error, response, body) {
+  if (error) throw new Error(error);
+
+  console.log(body);
+});
+
+
+
+
+}
+
+
+function getDataFromOpenEHR () {
+  var options = { method: 'GET',
+  url: 'https://test.operon.systems/rest/v1/composition/48c26fb5-31ee-4d4a-a6b2-c939c0fd6f89::jarrod.oprn.ehrscape.com::1',
+  qs: { format: 'FLAT' },
+  headers: 
+   { //'Postman-Token': 'f4f486f3-1e6d-4b83-a504-13408dcb0187',
+     'Cache-Control': 'no-cache',
+     'Auth-Token': '{{Auth-Token}}',
+     'Ehr-Session-disabled': 'e38eb2c7-85ba-40cd-9a9c-9e4cbca50fb8',
+     Authorization: 'Basic b3Bybl9qYXJyb2Q6WmF5RllDaU82NDQ=',
+     'Content-Type': 'application/json' } };
+
+request(options, function (error, response, body) {
+  if (error) throw new Error(error);
+
+  console.log(body);
+});
+
 
 
 }
