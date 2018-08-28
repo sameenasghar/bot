@@ -20,12 +20,14 @@ const app = express();
 //obtained Twilio credentials from the dashboard
 //client variable can now be used to make message requests
 const twilio = require ('twilio');
-const accountSid = 'ACf5a6d7f8dad982458c714674ee457b6d';
-const authToken = '7768acde7fc9ef95ed3fcb4631f9269a';
+const accountSid = 'ACb5eb967c5ccebb6aa05c5f91f1790268';
+const authToken = '3b32f5c5694321dc7c76f3203ee7ca15';
 const client = new twilio(accountSid, authToken);
 
 //setting up the Node.js body parsing middleware
 app.use(bodyParser.urlencoded({extended: false}))
+
+app.use(bodyParser.json()); // support json encoded bodies
 
 //connect to sql database
 var connection = mysql.createConnection({
@@ -88,6 +90,29 @@ console.log(mysqlDate);
 //storing the time of interaction
 var mysqlTime = moment().format('h:mm:ss');
 console.log(mysqlTime);
+
+//declaring variables to store the GAD7 international codes that will get sent to the open health records (OpenEHR) clinical data repository
+var gad7_1_code;
+var gad7_2_code;
+var gad7_3_code;
+var gad7_4_code;
+var gad7_5_code;
+var gad7_6_code;
+var gad7_7_code;
+
+
+
+//declaring variables to store the GPHQ9 international codes that will get sent to the open health records (OpenEHR) clinical data repository
+var phq9_1_code;
+var phq9_2_code;
+var phq9_3_code;
+var phq9_4_code;
+var phq9_5_code;
+var phq9_6_code;
+var phq9_7_code;
+var phq9_8_code;
+var phq9_9_code;
+
 
 // setting up end point for POST request
 //the incoming message is split up here into different parts to identify
@@ -224,11 +249,35 @@ assistant.message({
            console.log('user has agreed to send data to openEHR');
            console.log ('printing var dataToOpenEHR: ' + dataToOpenEHR);
            //ADD OPEN EHR STUFF HERE
+
+           console.log('generating codes for GAD7 scores for openEHR');
+           gad7_1_code = mapScoresToOpenEHRcodes(response.context.gad_1_entity);
+           gad7_2_code = mapScoresToOpenEHRcodes(response.context.gad_2_entity);
+           gad7_3_code = mapScoresToOpenEHRcodes(response.context.gad_3_entity);
+           gad7_4_code = mapScoresToOpenEHRcodes(response.context.gad_4_entity);
+           gad7_5_code = mapScoresToOpenEHRcodes(response.context.gad_5_entity);
+           gad7_6_code = mapScoresToOpenEHRcodes(response.context.gad_6_entity);
+           gad7_7_code = mapScoresToOpenEHRcodes(response.context.gad_7_entity);
+
+
+          console.log('gad7 question 1 code for openEHR is: ' + gad7_1_code);
+          console.log('gad7 question 2 code for openEHR is: ' + gad7_2_code);
+          console.log('gad7 question 3 code for openEHR is: ' + gad7_3_code);
+          console.log('gad7 question 4 code for openEHR is: ' + gad7_4_code);
+          console.log('gad7 question 5 code for openEHR is: ' + gad7_5_code);
+          console.log('gad7 question 6 code for openEHR is: ' + gad7_6_code);
+          console.log('gad7 question 7 code for openEHR is: ' + gad7_7_code);
+        
+
+
            
-           console.log('SENDING DATA TO OPENEHR!!!!!!!!');
-           sendData();
+           console.log('SENDING GAD7 DATA TO OPENEHR!!!!!!!!');
+           console.log('gq1 is' + response.context.gq_1 );
+           console.log('gad7 1 code  is' + gad7_1_code);
+           //sendGad7DataToOpenEHR(JSON.stringify(response.context.gq_1), JSON.stringify(response.context.gq_2), JSON.stringify(response.context.gq_3), JSON.stringify(gad7_1_code), JSON.stringify(gad7_2_code), JSON.stringify(gad7_3_code), JSON.stringify(gad7_4_code), JSON.stringify(gad7_5_code), JSON.stringify(gad7_6_code), JSON.stringify(gad7_7_code), JSON.stringify(gadTotal_score));
+           sendGad7DataToOpenEHR(response.context.gq_1, response.context.gq_2, response.context.gq_3, gad7_1_code, gad7_2_code, gad7_3_code, gad7_4_code, gad7_5_code, gad7_6_code, gad7_7_code, gadTotal_score);
            console.log('GETTING DATA BACK FROM OPENEHR!!!!!!!!!');
-           getDataFromOpenEHR ();
+           //getDataFromOpenEHR ();
          }
 
          // SQL code to add user interaction timestamp to our database 
@@ -300,8 +349,30 @@ assistant.message({
            console.log('user has agreed to send data to openEHR');
            console.log ('printing var dataToOpenEHR' + dataToOpenEHR);
            //ADD OPENEHR STUFF HERE
-           console.log('SENDING DATA TO OPENEHR!!!!!!!!');
-           sendData();
+
+           console.log('generating codes for PHQ9 scores for openEHR');
+           phq9_1_code = mapScoresToOpenEHRcodes(response.context.phq_1_entity);
+           phq9_2_code = mapScoresToOpenEHRcodes(response.context.phq_2_entity);
+           phq9_3_code = mapScoresToOpenEHRcodes(response.context.phq_3_entity);
+           phq9_4_code = mapScoresToOpenEHRcodes(response.context.phq_4_entity);
+           phq9_5_code = mapScoresToOpenEHRcodes(response.context.phq_5_entity);
+           phq9_6_code = mapScoresToOpenEHRcodes(response.context.phq_6_entity);
+           phq9_7_code = mapScoresToOpenEHRcodes(response.context.phq_7_entity);
+           phq9_8_code = mapScoresToOpenEHRcodes(response.context.phq_8_entity);
+           phq9_9_code = mapScoresToOpenEHRcodes(response.context.phq_9_entity);
+
+          console.log('PHQ9 question 1 code for openEHR is: ' + phq9_1_code);
+          console.log('PHQ9 question 2 code for openEHR is: ' + phq9_2_code);
+          console.log('PHQ9 question 3 code for openEHR is: ' + phq9_3_code);
+          console.log('PHQ9 question 4 code for openEHR is: ' + phq9_4_code);
+          console.log('PHQ9 question 5 code for openEHR is: ' + phq9_5_code);
+          console.log('PHQ9 question 6 code for openEHR is: ' + phq9_6_code);
+          console.log('PHQ9 question 7 code for openEHR is: ' + phq9_7_code);
+          console.log('PHQ9 question 8 code for openEHR is: ' + phq9_8_code);
+          console.log('PHQ9 question 9 code for openEHR is: ' + phq9_9_code);
+
+           console.log('SENDING PHQ 9 DATA TO OPENEHR!!!!!!!!');
+           sendPhq9DataToOpenEHR();
            console.log('GETTING DATA BACK FROM OPENEHR!!!!!!!!!');
            getDataFromOpenEHR ();
 
@@ -446,8 +517,7 @@ else {
 
 }
 
-function sendData (){
-
+function sendGad7DataToOpenEHR (general_question_1, general_question_2, general_question_3, gad7_code_1, gad7_code_2, gad7_code_3, gad7_code_4, gad7_code_5, gad7_code_6, gad7_code_7, questionnaire_total_score){
 
 var options = { method: 'POST',
   url: 'https://test.operon.systems/rest/v1/composition',
@@ -455,7 +525,7 @@ var options = { method: 'POST',
    { ehrId: 'c831fe4d-0ce9-4a63-8bfa-2c51007f97e5',
      //templateId: 'Mental%20Health%20Triage-v0',
      templateId: 'Mental Health Triage-v0',
-     committerName: 'Sameen Asghar',
+     committerName: 'Mental Health Chatbot',
      format: 'FLAT' },
   headers: 
    { //'Postman-Token': 'c64b6cc5-bc13-41cf-886f-1a7b166d2995',
@@ -466,30 +536,25 @@ var options = { method: 'POST',
   body: 
    { 'ctx/language': 'en',
      'ctx/territory': 'GB',
-     'ctx/composer_name': 'Sameen Asgharrrr',
+     'ctx/composer_name': 'Mental Health Chatbot',
      'ctx/time': '2018-05-29T16:18:14.444+02:00',
      'ctx/id_namespace': 'PARTY_SELF',
      'ctx/id_scheme': 'PARTY_SELF',
      'ctx/health_care_facility|name': 'Home',
      'ctx/health_care_facility|id': '0000',
-     'mental_health_triage/story_history:0/symptom_sign:0/symptom_sign_name': 'Anxiety',
-     'mental_health_triage/story_history:0/symptom_sign:0/description': 'I am been feeling very anxious.',
-     'mental_health_triage/story_history:0/symptom_sign:0/precipitating_factor:0/trigger': 'Air travel',
-     'mental_health_triage/story_history:0/symptom_sign:0/precipitating_factor:0/description': 'Triggered by things at uni',
-     'mental_health_triage/story_history:0/symptom_sign:1/symptom_sign_name': 'Feeling down',
-     'mental_health_triage/story_history:0/symptom_sign:1/description': 'I have been feeling very down and depressed',
-     'mental_health_triage/story_history:0/symptom_sign:1/precipitating_factor:0/trigger': 'Job worries',
-     'mental_health_triage/story_history:0/symptom_sign:1/precipitating_factor:0/description': 'My job is under threat',
-     'mental_health_triage/patient_health_questionnaire-9_phq-9/interest_pleasure|code': 'at0005',
-     'mental_health_triage/patient_health_questionnaire-9_phq-9/feeling_down|code': 'at0007',
-     'mental_health_triage/patient_health_questionnaire-9_phq-9/sleep_issues|code': 'at0008',
-     'mental_health_triage/patient_health_questionnaire-9_phq-9/tired_little_energy|code': 'at0006',
-     'mental_health_triage/patient_health_questionnaire-9_phq-9/appetite|code': 'at0008',
-     'mental_health_triage/patient_health_questionnaire-9_phq-9/feeling_bad_about_yourself|code': 'at0006',
-     'mental_health_triage/patient_health_questionnaire-9_phq-9/trouble_concentrating|code': 'at0008',
-     'mental_health_triage/patient_health_questionnaire-9_phq-9/slowness_fidgety|code': 'at0008',
-     'mental_health_triage/patient_health_questionnaire-9_phq-9/death_self-harm|code': 'at0008',
-     'mental_health_triage/patient_health_questionnaire-9_phq-9/phq-9_score': 19 },
+     'mental_health_triage/story_history:0/symptom_sign:0/symptom_sign_name': 'ANXIETY',
+     'mental_health_triage/story_history:0/symptom_sign:0/description': `${general_question_1}`,
+     'mental_health_triage/story_history:0/symptom_sign:0/precipitating_factor:0/trigger': `${general_question_2}`,
+     'mental_health_triage/story_history:0/symptom_sign:0/precipitating_factor:0/description': `${general_question_3}`,
+     'mental_health_triage/gad-7/feeling_nervous_anxious_or_on_edge|code': `${gad7_code_1}`,
+     'mental_health_triage/gad-7/not_being_able_to_stop_or_control_worrying|code': `${gad7_code_2}`,
+     'mental_health_triage/gad-7/worrying_too_much_about_different_things|code': `${gad7_code_3}`,
+     'mental_health_triage/gad-7/trouble_relaxing|code': `${gad7_code_4}`,
+     'mental_health_triage/gad-7/being_so_restless_it_is_hard_to_sit_still|code': `${gad7_code_5}`,
+     'mental_health_triage/gad-7/becoming_easily_annoyed_or_irritable|code': `${gad7_code_5}`,
+     'mental_health_triage/gad-7/feeling_afraid_as_it_something_awful_might_happen|code': `${gad7_code_7}`,
+     'mental_health_triage/gad-7/total_score': questionnaire_total_score },
+
   json: true };
 
 request(options, function (error, response, body) {
@@ -498,15 +563,62 @@ request(options, function (error, response, body) {
   console.log(body);
 });
 
-
-
-
 }
+
+function sendPhq9DataToOpenEHR (){
+
+
+  var options = { method: 'POST',
+    url: 'https://test.operon.systems/rest/v1/composition',
+    qs: 
+     { ehrId: 'c831fe4d-0ce9-4a63-8bfa-2c51007f97e5',
+       //templateId: 'Mental%20Health%20Triage-v0',
+       templateId: 'Mental Health Triage-v0',
+       committerName: 'Mental Health Chatbot',
+       format: 'FLAT' },
+    headers: 
+     { //'Postman-Token': 'c64b6cc5-bc13-41cf-886f-1a7b166d2995',
+       'Cache-Control': 'no-cache',
+       'Content-Type': 'application/json',
+       'Ehr-Session-disabled': 'e38eb2c7-85ba-40cd-9a9c-9e4cbca50fb8',
+       Authorization: 'Basic b3Bybl9qYXJyb2Q6WmF5RllDaU82NDQ=' },
+    body: 
+     { 'ctx/language': 'en',
+       'ctx/territory': 'GB',
+       'ctx/composer_name': 'Mental Health Chatbot',
+       'ctx/time': '2018-05-29T16:18:14.444+02:00',
+       'ctx/id_namespace': 'PARTY_SELF',
+       'ctx/id_scheme': 'PARTY_SELF',
+       'ctx/health_care_facility|name': 'Home',
+       'ctx/health_care_facility|id': '0000',
+       'mental_health_triage/story_history:0/symptom_sign:1/symptom_sign_name': 'Feeling down',
+       'mental_health_triage/story_history:0/symptom_sign:1/description': 'I have been feeling very down and depressed',
+       'mental_health_triage/story_history:0/symptom_sign:1/precipitating_factor:0/trigger': 'Job worries',
+       'mental_health_triage/story_history:0/symptom_sign:1/precipitating_factor:0/description': 'My job is under threat',
+       'mental_health_triage/patient_health_questionnaire-9_phq-9/interest_pleasure|code': 'at0005',
+       'mental_health_triage/patient_health_questionnaire-9_phq-9/feeling_down|code': 'at0007',
+       'mental_health_triage/patient_health_questionnaire-9_phq-9/sleep_issues|code': 'at0008',
+       'mental_health_triage/patient_health_questionnaire-9_phq-9/tired_little_energy|code': 'at0006',
+       'mental_health_triage/patient_health_questionnaire-9_phq-9/appetite|code': 'at0008',
+       'mental_health_triage/patient_health_questionnaire-9_phq-9/feeling_bad_about_yourself|code': 'at0006',
+       'mental_health_triage/patient_health_questionnaire-9_phq-9/trouble_concentrating|code': 'at0008',
+       'mental_health_triage/patient_health_questionnaire-9_phq-9/slowness_fidgety|code': 'at0008',
+       'mental_health_triage/patient_health_questionnaire-9_phq-9/death_self-harm|code': 'at0008',
+       'mental_health_triage/patient_health_questionnaire-9_phq-9/phq-9_score': 19 },
+    json: true };
+  
+  request(options, function (error, response, body) {
+    if (error) throw new Error(error);
+  
+    console.log(body);
+  });
+  
+  }
 
 
 function getDataFromOpenEHR () {
   var options = { method: 'GET',
-  url: 'https://test.operon.systems/rest/v1/composition/48c26fb5-31ee-4d4a-a6b2-c939c0fd6f89::jarrod.oprn.ehrscape.com::1',
+  url: 'https://test.operon.systems/rest/v1/composition/96180551-2554-4164-ac12-20bc36b7edd7::jarrod.oprn.ehrscape.com::1',
   qs: { format: 'FLAT' },
   headers: 
    { //'Postman-Token': 'f4f486f3-1e6d-4b83-a504-13408dcb0187',
@@ -524,4 +636,32 @@ request(options, function (error, response, body) {
 
 
 
+}
+
+
+//UPDATES THESE NEED THE CORRECT ATCODES EHRE!!!!!!!!!!
+// this function associate the entities indentified in the gad7/phq9 questionnaire answers to their international codes that need to be stored in the openEHR clinical data repository 
+function mapScoresToOpenEHRcodes(entity){
+	// each entity identified corresponds to a particular score
+  // 'not at all' corresponds to the code at0005
+  //'several days corresponds to the code at0006
+  //'more than half the days' corresponds to the code at0007
+  // 'nearly every day' corresponds to the code at0008
+
+	switch(entity){
+		case 'not at all':
+			return 'at0034';
+			break;
+		case 'several days':
+			return 'at0010';
+			break;
+		case 'more than half the days':
+			return 'at0031';
+			break;
+		case 'nearly every day':
+			return 'at0042';
+			break;
+		default:
+			return 'at0034';
+	}
 }
