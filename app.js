@@ -20,8 +20,8 @@ const app = express();
 //obtained Twilio credentials from the dashboard
 //client variable can now be used to make message requests
 const twilio = require ('twilio');
-const accountSid = 'ACb5eb967c5ccebb6aa05c5f91f1790268';
-const authToken = '3b32f5c5694321dc7c76f3203ee7ca15';
+const accountSid = 'AC00a3e06bab981722f9d86d24a53c6428';
+const authToken = '5dc6a8ed0f77d940c8bc3f25ff0e90a2';
 const client = new twilio(accountSid, authToken);
 
 //setting up the Node.js body parsing middleware
@@ -251,13 +251,13 @@ assistant.message({
            //ADD OPEN EHR STUFF HERE
 
            console.log('generating codes for GAD7 scores for openEHR');
-           gad7_1_code = mapScoresToOpenEHRcodes(response.context.gad_1_entity);
-           gad7_2_code = mapScoresToOpenEHRcodes(response.context.gad_2_entity);
-           gad7_3_code = mapScoresToOpenEHRcodes(response.context.gad_3_entity);
-           gad7_4_code = mapScoresToOpenEHRcodes(response.context.gad_4_entity);
-           gad7_5_code = mapScoresToOpenEHRcodes(response.context.gad_5_entity);
-           gad7_6_code = mapScoresToOpenEHRcodes(response.context.gad_6_entity);
-           gad7_7_code = mapScoresToOpenEHRcodes(response.context.gad_7_entity);
+           gad7_1_code = mapGadQuestion1ToCode(response.context.gad_1_entity);
+           gad7_2_code = mapGadQuestion2ToCode(response.context.gad_2_entity);
+           gad7_3_code = mapGadQuestion3ToCode(response.context.gad_3_entity);
+           gad7_4_code = mapGadQuestion4ToCode(response.context.gad_4_entity);
+           gad7_5_code = mapGadQuestion5ToCode(response.context.gad_5_entity);
+           gad7_6_code = mapGadQuestion6ToCode(response.context.gad_6_entity);
+           gad7_7_code = mapGadQuestion7ToCode(response.context.gad_7_entity);
 
 
           console.log('gad7 question 1 code for openEHR is: ' + gad7_1_code);
@@ -276,8 +276,8 @@ assistant.message({
            console.log('gad7 1 code  is' + gad7_1_code);
            //sendGad7DataToOpenEHR(JSON.stringify(response.context.gq_1), JSON.stringify(response.context.gq_2), JSON.stringify(response.context.gq_3), JSON.stringify(gad7_1_code), JSON.stringify(gad7_2_code), JSON.stringify(gad7_3_code), JSON.stringify(gad7_4_code), JSON.stringify(gad7_5_code), JSON.stringify(gad7_6_code), JSON.stringify(gad7_7_code), JSON.stringify(gadTotal_score));
            sendGad7DataToOpenEHR(response.context.gq_1, response.context.gq_2, response.context.gq_3, gad7_1_code, gad7_2_code, gad7_3_code, gad7_4_code, gad7_5_code, gad7_6_code, gad7_7_code, gadTotal_score);
-           console.log('GETTING DATA BACK FROM OPENEHR!!!!!!!!!');
-           //getDataFromOpenEHR ();
+           console.log('GETTING DATA BACK FROM OPENEHR!!!!!!!!!!!!!!');
+           getDataFromOpenEHR ();
          }
 
          // SQL code to add user interaction timestamp to our database 
@@ -351,15 +351,15 @@ assistant.message({
            //ADD OPENEHR STUFF HERE
 
            console.log('generating codes for PHQ9 scores for openEHR');
-           phq9_1_code = mapScoresToOpenEHRcodes(response.context.phq_1_entity);
-           phq9_2_code = mapScoresToOpenEHRcodes(response.context.phq_2_entity);
-           phq9_3_code = mapScoresToOpenEHRcodes(response.context.phq_3_entity);
-           phq9_4_code = mapScoresToOpenEHRcodes(response.context.phq_4_entity);
-           phq9_5_code = mapScoresToOpenEHRcodes(response.context.phq_5_entity);
-           phq9_6_code = mapScoresToOpenEHRcodes(response.context.phq_6_entity);
-           phq9_7_code = mapScoresToOpenEHRcodes(response.context.phq_7_entity);
-           phq9_8_code = mapScoresToOpenEHRcodes(response.context.phq_8_entity);
-           phq9_9_code = mapScoresToOpenEHRcodes(response.context.phq_9_entity);
+           phq9_1_code = mapPHQ9ScoresToOpenEHRcodes(response.context.phq_1_entity);
+           phq9_2_code = mapPHQ9ScoresToOpenEHRcodes(response.context.phq_2_entity);
+           phq9_3_code = mapPHQ9ScoresToOpenEHRcodes(response.context.phq_3_entity);
+           phq9_4_code = mapPHQ9ScoresToOpenEHRcodes(response.context.phq_4_entity);
+           phq9_5_code = mapPHQ9ScoresToOpenEHRcodes(response.context.phq_5_entity);
+           phq9_6_code = mapPHQ9ScoresToOpenEHRcodes(response.context.phq_6_entity);
+           phq9_7_code = mapPHQ9ScoresToOpenEHRcodes(response.context.phq_7_entity);
+           phq9_8_code = mapPHQ9ScoresToOpenEHRcodes(response.context.phq_8_entity);
+           phq9_9_code = mapPHQ9ScoresToOpenEHRcodes(response.context.phq_9_entity);
 
           console.log('PHQ9 question 1 code for openEHR is: ' + phq9_1_code);
           console.log('PHQ9 question 2 code for openEHR is: ' + phq9_2_code);
@@ -371,8 +371,18 @@ assistant.message({
           console.log('PHQ9 question 8 code for openEHR is: ' + phq9_8_code);
           console.log('PHQ9 question 9 code for openEHR is: ' + phq9_9_code);
 
-           console.log('SENDING PHQ 9 DATA TO OPENEHR!!!!!!!!');
-           sendPhq9DataToOpenEHR();
+           //console.log('SENDING PHQ 9 DATA TO OPENEHR!!!!!!!!');
+           //sendPhq9DataToOpenEHR();
+           //console.log('GETTING DATA BACK FROM OPENEHR!!!!!!!!!');
+           //getDataFromOpenEHR ();
+
+
+
+           console.log('gq1 is' + response.context.gq_1 );
+           console.log('phq9 1 code  is' + phq9_1_code);
+           //sendGad7DataToOpenEHR(JSON.stringify(response.context.gq_1), JSON.stringify(response.context.gq_2), JSON.stringify(response.context.gq_3), JSON.stringify(gad7_1_code), JSON.stringify(gad7_2_code), JSON.stringify(gad7_3_code), JSON.stringify(gad7_4_code), JSON.stringify(gad7_5_code), JSON.stringify(gad7_6_code), JSON.stringify(gad7_7_code), JSON.stringify(gadTotal_score));
+           console.log('SENDING PHQ 9 DATA TO OPENEHR!!!!!!!!')
+           sendPhq9DataToOpenEHR(response.context.gq_1, response.context.gq_2, response.context.gq_3, phq9_1_code, phq9_2_code, phq9_3_code, phq9_4_code, phq9_5_code, phq9_6_code, phq9_7_code, phq9_8_code, phq9_9_code, phq9_total_score);
            console.log('GETTING DATA BACK FROM OPENEHR!!!!!!!!!');
            getDataFromOpenEHR ();
 
@@ -551,7 +561,7 @@ var options = { method: 'POST',
      'mental_health_triage/gad-7/worrying_too_much_about_different_things|code': `${gad7_code_3}`,
      'mental_health_triage/gad-7/trouble_relaxing|code': `${gad7_code_4}`,
      'mental_health_triage/gad-7/being_so_restless_it_is_hard_to_sit_still|code': `${gad7_code_5}`,
-     'mental_health_triage/gad-7/becoming_easily_annoyed_or_irritable|code': `${gad7_code_5}`,
+     'mental_health_triage/gad-7/becoming_easily_annoyed_or_irritable|code': `${gad7_code_6}`,
      'mental_health_triage/gad-7/feeling_afraid_as_it_something_awful_might_happen|code': `${gad7_code_7}`,
      'mental_health_triage/gad-7/total_score': questionnaire_total_score },
 
@@ -565,7 +575,7 @@ request(options, function (error, response, body) {
 
 }
 
-function sendPhq9DataToOpenEHR (){
+function sendPhq9DataToOpenEHR (general_question_1, general_question_2, general_question_3, phq_code_1, phq_code_2, phq_code_3, phq_code_4, phq_code_5, phq_code_6, phq_code_7, phq_code_8, phq_code_9, questionnaire_total_score){
 
 
   var options = { method: 'POST',
@@ -592,19 +602,19 @@ function sendPhq9DataToOpenEHR (){
        'ctx/health_care_facility|name': 'Home',
        'ctx/health_care_facility|id': '0000',
        'mental_health_triage/story_history:0/symptom_sign:1/symptom_sign_name': 'Feeling down',
-       'mental_health_triage/story_history:0/symptom_sign:1/description': 'I have been feeling very down and depressed',
-       'mental_health_triage/story_history:0/symptom_sign:1/precipitating_factor:0/trigger': 'Job worries',
-       'mental_health_triage/story_history:0/symptom_sign:1/precipitating_factor:0/description': 'My job is under threat',
-       'mental_health_triage/patient_health_questionnaire-9_phq-9/interest_pleasure|code': 'at0005',
-       'mental_health_triage/patient_health_questionnaire-9_phq-9/feeling_down|code': 'at0007',
-       'mental_health_triage/patient_health_questionnaire-9_phq-9/sleep_issues|code': 'at0008',
-       'mental_health_triage/patient_health_questionnaire-9_phq-9/tired_little_energy|code': 'at0006',
-       'mental_health_triage/patient_health_questionnaire-9_phq-9/appetite|code': 'at0008',
-       'mental_health_triage/patient_health_questionnaire-9_phq-9/feeling_bad_about_yourself|code': 'at0006',
-       'mental_health_triage/patient_health_questionnaire-9_phq-9/trouble_concentrating|code': 'at0008',
-       'mental_health_triage/patient_health_questionnaire-9_phq-9/slowness_fidgety|code': 'at0008',
-       'mental_health_triage/patient_health_questionnaire-9_phq-9/death_self-harm|code': 'at0008',
-       'mental_health_triage/patient_health_questionnaire-9_phq-9/phq-9_score': 19 },
+       'mental_health_triage/story_history:0/symptom_sign:1/description': `${general_question_1}`,
+       'mental_health_triage/story_history:0/symptom_sign:1/precipitating_factor:0/trigger': `${general_question_2}`,
+       'mental_health_triage/story_history:0/symptom_sign:1/precipitating_factor:0/description': `${general_question_3}`,
+       'mental_health_triage/patient_health_questionnaire-9_phq-9/interest_pleasure|code': `${phq_code_1}`,
+       'mental_health_triage/patient_health_questionnaire-9_phq-9/feeling_down|code': `${phq_code_2}`,
+       'mental_health_triage/patient_health_questionnaire-9_phq-9/sleep_issues|code': `${phq_code_3}`,
+       'mental_health_triage/patient_health_questionnaire-9_phq-9/tired_little_energy|code': `${phq_code_4}`,
+       'mental_health_triage/patient_health_questionnaire-9_phq-9/appetite|code': `${phq_code_5}`,
+       'mental_health_triage/patient_health_questionnaire-9_phq-9/feeling_bad_about_yourself|code': `${phq_code_6}`,
+       'mental_health_triage/patient_health_questionnaire-9_phq-9/trouble_concentrating|code': `${phq_code_7}`,
+       'mental_health_triage/patient_health_questionnaire-9_phq-9/slowness_fidgety|code': `${phq_code_8}`,
+       'mental_health_triage/patient_health_questionnaire-9_phq-9/death_self-harm|code': `${phq_code_9}`,
+       'mental_health_triage/patient_health_questionnaire-9_phq-9/phq-9_score': questionnaire_total_score },
     json: true };
   
   request(options, function (error, response, body) {
@@ -618,7 +628,7 @@ function sendPhq9DataToOpenEHR (){
 
 function getDataFromOpenEHR () {
   var options = { method: 'GET',
-  url: 'https://test.operon.systems/rest/v1/composition/96180551-2554-4164-ac12-20bc36b7edd7::jarrod.oprn.ehrscape.com::1',
+  url: 'https://test.operon.systems/rest/v1/composition/dcf61c24-574e-4122-ac49-42ac01ea539d::jarrod.oprn.ehrscape.com::1',
   qs: { format: 'FLAT' },
   headers: 
    { //'Postman-Token': 'f4f486f3-1e6d-4b83-a504-13408dcb0187',
@@ -640,8 +650,8 @@ request(options, function (error, response, body) {
 
 
 //UPDATES THESE NEED THE CORRECT ATCODES EHRE!!!!!!!!!!
-// this function associate the entities indentified in the gad7/phq9 questionnaire answers to their international codes that need to be stored in the openEHR clinical data repository 
-function mapScoresToOpenEHRcodes(entity){
+// this function associate the entities indentified in the phq9 questionnaire answers to their international codes that need to be stored in the openEHR clinical data repository 
+function mapPHQ9ScoresToOpenEHRcodes(entity){
 	// each entity identified corresponds to a particular score
   // 'not at all' corresponds to the code at0005
   //'several days corresponds to the code at0006
@@ -650,18 +660,169 @@ function mapScoresToOpenEHRcodes(entity){
 
 	switch(entity){
 		case 'not at all':
-			return 'at0034';
+			return 'at0005';
+			break;
+		case 'several days':
+			return 'at0006';
+			break;
+		case 'more than half the days':
+			return 'at0007';
+			break;
+		case 'nearly every day':
+			return 'at0008';
+			break;
+		default:
+			return 'at0005';
+	}
+}
+
+
+//the following functions map individual gad7 question scores to the corresponding at codes for storage in the openEHR Clinical Data Repository 
+
+//function to map gad7 question 1 score to its corresponding code based on the entity identified by IBM Watson
+function mapGadQuestion1ToCode(entity){
+
+	switch(entity){
+		case 'not at all':
+			return 'at0009';
 			break;
 		case 'several days':
 			return 'at0010';
 			break;
 		case 'more than half the days':
+			return 'at0011';
+			break;
+		case 'nearly every day':
+			return 'at0012';
+			break;
+		default:
+			return 'at0009';
+	}
+}
+
+//function to map gad7 question 2 score to its corresponding code based on the entity identified by IBM Watson
+function mapGadQuestion2ToCode(entity){
+
+	switch(entity){
+		case 'not at all':
+			return 'at0014';
+			break;
+		case 'several days':
+			return 'at0015';
+			break;
+		case 'more than half the days':
+			return 'at0016';
+			break;
+		case 'nearly every day':
+			return 'at0017';
+			break;
+		default:
+			return 'at0014';
+	}
+}
+
+//function to map gad7 question 3 score to its corresponding code based on the entity identified by IBM Watson
+function mapGadQuestion3ToCode(entity){
+
+	switch(entity){
+		case 'not at all':
+			return 'at0019';
+			break;
+		case 'several days':
+			return 'at0020';
+			break;
+		case 'more than half the days':
+			return 'at0021';
+			break;
+		case 'nearly every day':
+			return 'at0022';
+			break;
+		default:
+			return 'at0019';
+	}
+}
+
+//function to map gad7 question 4 score to its corresponding code based on the entity identified by IBM Watson
+function mapGadQuestion4ToCode(entity){
+
+	switch(entity){
+		case 'not at all':
+			return 'at0024';
+			break;
+		case 'several days':
+			return 'at0025';
+			break;
+		case 'more than half the days':
+			return 'at0026';
+			break;
+		case 'nearly every day':
+			return 'at0027';
+			break;
+		default:
+			return 'at0024';
+	}
+}
+
+
+//function to map gad7 question 5 score to its corresponding code based on the entity identified by IBM Watson
+function mapGadQuestion5ToCode(entity){
+
+	switch(entity){
+		case 'not at all':
+			return 'at0029';
+			break;
+		case 'several days':
+			return 'at0030';
+			break;
+		case 'more than half the days':
 			return 'at0031';
+			break;
+		case 'nearly every day':
+			return 'at0032';
+			break;
+		default:
+			return 'at0029';
+	}
+}
+
+//function to map gad7 question 6 score to its corresponding code based on the entity identified by IBM Watson
+function mapGadQuestion6ToCode(entity){
+
+	switch(entity){
+		case 'not at all':
+			return 'at0034';
+			break;
+		case 'several days':
+			return 'at0035';
+			break;
+		case 'more than half the days':
+			return 'at0036';
+			break;
+		case 'nearly every day':
+			return 'at0037';
+			break;
+		default:
+			return 'at0034';
+	}
+}
+
+//function to map gad7 question 7 score to its corresponding code based on the entity identified by IBM Watson
+function mapGadQuestion7ToCode(entity){
+
+	switch(entity){
+		case 'not at all':
+			return 'at0039';
+			break;
+		case 'several days':
+			return 'at0040';
+			break;
+		case 'more than half the days':
+			return 'at0041';
 			break;
 		case 'nearly every day':
 			return 'at0042';
 			break;
 		default:
-			return 'at0034';
+			return 'at0039';
 	}
 }
